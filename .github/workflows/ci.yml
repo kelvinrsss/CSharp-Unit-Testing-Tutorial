@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restaurar dependências
+        run: dotnet restore src/UnitTestingTutorial.slnx
+
+      - name: Build
+        run: dotnet build src/UnitTestingTutorial.slnx --no-restore --configuration Release
+
+      - name: Testes com coleta de cobertura
+        run: dotnet test src/UnitTestingTutorial.slnx --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      - name: Publicar artefato de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-cobertura-xml
+          path: ./coverage/**/coverage.cobertura.xml
